@@ -67,6 +67,125 @@ The backend for the Airbnb Clone project is designed to provide a robust and sca
 - **REST API**: Detailed documentation available through the OpenAPI standard, including endpoints for users, properties, bookings, and payments
 - **GraphQL API**: Provides a flexible query language for retrieving and manipulating data
 
+## 🗄️ Database Design
+
+### Key Entities
+
+#### 1. Users
+Manages user accounts for both guests and hosts.
+
+**Key Fields:**
+- `id` (Primary Key): Unique identifier for each user
+- `email` (Unique): User's email address for authentication
+- `first_name`: User's first name
+- `last_name`: User's last name
+- `phone_number`: Contact phone number
+- `is_host`: Boolean flag indicating if user can list properties
+- `date_joined`: Account creation timestamp
+- `profile_picture`: URL to user's profile image
+
+#### 2. Properties
+Stores property listing information.
+
+**Key Fields:**
+- `id` (Primary Key): Unique identifier for each property
+- `host_id` (Foreign Key): References Users table - property owner
+- `title`: Property listing title
+- `description`: Detailed property description
+- `price`:  rate in decimal format
+- `location`: Property address/location
+- `max_guests`: Maximum number of guests allowed
+- `amenities`: available amenities
+- `is_available`: Boolean indicating current availability
+
+#### 3. Bookings
+Tracks reservation details between guests and properties.
+
+**Key Fields:**
+- `id` (Primary Key): Unique identifier for each booking
+- `guest_id` (Foreign Key): References Users table - booking guest
+- `property_id` (Foreign Key): References Properties table
+- `check_in_date`: Reservation start date
+- `check_out_date`: Reservation end date
+- `total_price`: Final booking amount
+- `status`: Booking status (pending, confirmed, cancelled, completed)
+- `created_at`: Booking creation timestamp
+
+#### 4. Reviews
+Stores guest reviews and ratings for properties.
+
+**Key Fields:**
+- `id` (Primary Key): Unique identifier for each review
+- `guest_id` (Foreign Key): References Users table - reviewer
+- `property_id` (Foreign Key): References Properties table
+- `booking_id` (Foreign Key): References Bookings table - ensures guest stayed
+- `rating`: Numeric rating (1-5 stars)
+- `comment`: Written review text
+- `created_at`: Review submission timestamp
+
+#### 5. Payments
+Records payment transactions for bookings.
+
+**Key Fields:**
+- `id` (Primary Key): Unique identifier for each payment
+- `booking_id` (Foreign Key): References Bookings table
+- `amount`: Payment amount
+- `payment_method`: Payment type (credit_card, transfer, etc.)
+- `payment_status`: Status (pending, completed, failed, refunded)
+- `transaction_id`: External payment processor reference
+- `created_at`: Payment processing timestamp
+
+### Entity Relationships
+
+#### One-to-Many Relationships
+- **Users → Properties**: A user (host) can own multiple properties
+- **Users → Bookings**: A user (guest) can make multiple bookings
+- **Properties → Bookings**: A property can have multiple bookings over time
+- **Properties → Reviews**: A property can receive multiple reviews
+- **Users → Reviews**: A user can write multiple reviews
+- **Bookings → Payments**: A booking can have multiple payment records (partial payments, refunds)
+
+#### One-to-One Relationships
+- **Bookings → Reviews**: Each booking can have at most one review (guests can only review properties they've stayed at)
+
+
+### Key Constraints
+- Users must have unique email addresses
+- Bookings cannot have check-out dates before check-in dates
+- Reviews can only be created by guests who have completed bookings
+- Payments are linked to valid bookings
+- Properties can only be created by users with `is_host = True`
+
+## 🔧 Feature Breakdown
+
+### User Management
+Provides comprehensive user account functionality including registration, authentication, and profile management for both guests and hosts. This feature serves as the foundation for the platform by enabling secure user identification and personalized experiences. Users can update their profiles, manage preferences, and maintain their account security through password management and profile verification.
+
+### Property Management
+Enables hosts to create, update, and manage their property listings with detailed information including descriptions, pricing, amenities, and availability calendars. This feature forms the core marketplace functionality by allowing hosts to showcase their properties effectively with photos, location details, and house rules.
+
+### Booking System
+Facilitates the complete reservation process between guests and hosts with real-time availability checking, booking confirmation, and status management. This feature handles the critical transaction flow from property search to booking completion, including date validation, pricing calculations, and conflict prevention. 
+
+### Payment Processing
+Integrates secure payment gateway functionality to handle financial transactions, including booking payments, security deposits, and host payouts. This feature ensures reliable payment processing with support for multiple payment methods, automatic calculations, and secure fund distribution. The system includes comprehensive payment tracking, refund processing, transaction history, and automated invoicing for complete financial transparency.
+
+## 🔒 API Security
+
+### JWT/SSO Authentication
+Implements JSON Web Token (JWT) authentication with Single Sign-On (SSO) capabilities to ensure secure, stateless user sessions across the platform. This protects user accounts from unauthorized access and ensures that only authenticated users can perform sensitive operations like making bookings, processing payments, or managing property listings.
+
+### Rate Limiting & Bot Protection
+Deploys intelligent rate limiting mechanisms to prevent abuse from bots, scrapers, and malicious actors attempting to overwhelm the system or extract data illegally. This security measure protects against automated attacks, prevents API abuse, and ensures fair resource allocation among legitimate users. Rate limiting is particularly crucial for protecting booking endpoints from rapid-fire reservation attempts, search APIs from excessive scraping, and payment processing from fraudulent transaction floods.
+
+### Virtual Firewall & DDoS Protection
+Utilizes virtual firewall rules and distributed denial-of-service (DDoS) protection to safeguard the infrastructure from network-level attacks and traffic anomalies. This creates multiple layers of defense against malicious traffic patterns, IP-based attacks, and ensures service availability during peak usage or coordinated attack scenarios. The firewall prevents unauthorized network access while DDoS protection maintains platform stability and responsiveness for legitimate users during high-traffic periods.
+
+### Principle of Least Privilege
+Enforces strict role-based access control (RBAC) where users, API endpoints, and system components receive only the minimum permissions necessary for their specific functions. This security principle ensures that guests cannot access host-only management features, hosts cannot manipulate other users' properties or bookings, and system services operate with restricted database and resource permissions. This approach significantly minimizes the potential impact of security breaches, prevents privilege escalation attacks, and maintains clear separation of concerns across different user roles and system components.
+
+
+
 ## 📌 API Endpoints
 
 ### Users
